@@ -51,14 +51,26 @@
 
       feedback.innerText = "Generating feedback...";
 
-      const response = await fetch("/api/feedback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ writing, level: "5**", mode })
-      });
+      try {
+        const response = await fetch("/api/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ writing, level: "5**", mode })
+        });
 
-      const data = await response.json();
-      feedback.innerText = data.feedback || "⚠️ Feedback could not be generated.";
+        let data;
+        try {
+          data = await response.json();
+          feedback.innerText = data.feedback || "⚠️ Feedback could not be generated.";
+        } catch (e) {
+          const text = await response.text();
+          console.error("⚠️ Non-JSON error:", text);
+          feedback.innerText = "❌ Server error: " + text;
+        }
+      } catch (error) {
+        console.error("❌ Fetch error:", error);
+        feedback.innerText = "❌ Failed to connect to server.";
+      }
     }
 
     async function brushUp() {
@@ -73,14 +85,19 @@
 
       brushup.innerText = "Improving your writing to 5** level...";
 
-      const response = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic: question || "DSE English Writing", type: "article", level: "5**", original: writing })
-      });
+      try {
+        const response = await fetch("/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ topic: question || "DSE English Writing", type: "article", level: "5**", original: writing })
+        });
 
-      const data = await response.json();
-      brushup.innerText = data.writing || "⚠️ Failed to improve writing.";
+        const data = await response.json();
+        brushup.innerText = data.writing || "⚠️ Failed to improve writing.";
+      } catch (error) {
+        console.error("❌ Brush-up error:", error);
+        brushup.innerText = "❌ Failed to improve writing.";
+      }
     }
   </script>
 </body>
