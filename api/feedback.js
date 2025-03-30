@@ -1,4 +1,8 @@
 export default async function handler(req, res) {
+  if (req.method === "GET") {
+    return res.status(200).json({ message: "✅ Feedback API is alive!" });
+  }
+
   const { writing, level, mode } = req.body;
 
   console.log("🟡 FEEDBACK INPUT:", { level, mode, writingSnippet: writing?.slice(0, 100) });
