@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>DSE Writing Marker Tool</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; }
+    label { display: block; margin-top: 20px; font-weight: bold; }
+    textarea, input, button, pre { width: 100%; padding: 10px; margin-top: 5px; }
+    button { background-color: #1e40af; color: white; border: none; cursor: pointer; }
+    button:hover { background-color: #1d4ed8; }
+    pre { background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 4px; min-height: 100px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>DSE Writing Marker Tool</h1>
+  <p>Submit your writing for examiner-style feedback and improvement to 5** level.</p>
+
+  <label for="question">DSE Question</label>
+  <input type="text" id="question" placeholder="e.g. Should school uniforms be mandatory?" />
+
+  <label for="studentWriting">Your Writing</label>
+  <textarea id="studentWriting" rows="12" placeholder="Paste or write your composition here..."></textarea>
+
+  <button onclick="markWriting()">Generate Feedback</button>
+
+  <label for="feedback">Examiner Feedback</label>
+  <pre id="feedback">Feedback will appear here. Format:
+C: 
+L: 
+O:</pre>
+
+  <button onclick="brushUp()">Brush-up Writing to 5**</button>
+
+  <label for="brushup">Improved Writing (5**)</label>
+  <pre id="brushup">Your enhanced version will appear here...</pre>
+
+  <script>
+    async function markWriting() {
+      const writing = document.getElementById("studentWriting").value;
+      const feedback = document.getElementById("feedback");
+
+      if (!writing.trim()) {
+        feedback.innerText = "⚠️ Please enter your writing first.";
+        return;
+      }
+
+      feedback.innerText = "Generating feedback...";
+
+      const response = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ writing, level: "5**" })
+      });
+
+      const data = await response.json();
+      feedback.innerText = data.feedback || "⚠️ Feedback could not be generated.";
+    }
+
+    async function brushUp() {
+      const writing = document.getElementById("studentWriting").value;
+      const brushup = document.getElementById("brushup");
+      const question = document.getElementById("question").value;
+
+      if (!writing.trim()) {
+        brushup.innerText = "⚠️ Please enter your writing first.";
+        return;
+      }
+
+      brushup.innerText = "Improving your writing to 5** level...";
+
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topic: question || "DSE English Writing", type: "article", level: "5**", original: writing })
+      });
+
+      const data = await response.json();
+      brushup.innerText = data.writing || "⚠️ Failed to improve writing.";
+    }
+  </script>
+</body>
+</html>
