@@ -8,50 +8,42 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Missing writing or level" });
   }
 
-  const max_tokens = mode === "detailed" ? 1800 : {
+  const max_tokens = mode === "detailed" ? 1200 : {
     "5": 1000,
     "5*": 1200,
     "5**": 1400
   }[level] || 1000;
 
   const detailedPrompt = \`
-You are a strict and experienced HKDSE English Paper 2 examiner.
+You are an experienced HKDSE English Paper 2 examiner.
 
-Evaluate the student's writing using the official HKDSE rubrics.
+Evaluate the student's writing and assign band scores (1–7) for:
+- Content (C)
+- Language (L)
+- Organisation (O)
 
-You must:
-- Estimate a band score (1–7) for each domain:
-  Content (C), Language (L), and Organisation (O)
-- Give ✅ strengths and ✘ weaknesses for each domain
-- Provide suggestions to reach Level 5 and Level 5**
-- Follow the exact format below
+Then explain:
+- What was done well (✅)
+- What needs improvement (✘)
+- Give tips to reach Level 5 and 5**
 
-FORMAT:
+Use this format exactly:
 
 📊 Estimated Band Scores
-Domain         Band     Comments
-Content (C)     ?/7     ✅ ... ✘ ...
-Language (L)    ?/7     ✅ ... ✘ ...
-Organisation (O) ?/7    ✅ ... ✘ ...
+Content (C): ?/7 ✅ ... ✘ ...
+Language (L): ?/7 ✅ ... ✘ ...
+Organisation (O): ?/7 ✅ ... ✘ ...
 
-🧠 Detailed Feedback by Domain
-✅ CONTENT – ?/7
-[Detailed analysis including examples and what was done well or poorly]
+🧠 Domain Comments
+C: ...
+L: ...
+O: ...
 
-✅ LANGUAGE – ?/7
-[Detailed notes on vocabulary, grammar, phrasing, sentence variety]
+🏁 Suggestions to reach Level 5 / 5**:
+- ...
+- ...
 
-✅ ORGANISATION – ?/7
-[Paragraph structure, flow, cohesion, transitions]
-
-🏁 Final Assessment
-C   L   O   → Overall Level: ? (e.g. Level 4 / 5 / 5*)
-
-✅ Suggestions to improve to Level 5 and 5**:
-- Bullet points with direct, clear suggestions
-- Use real examples where possible
-
-Student's writing:
+Student writing:
 \${writing}
 \`;
 
@@ -102,9 +94,9 @@ Student's writing:
     console.log("🟢 FEEDBACK RESPONSE:", JSON.stringify(data, null, 2));
 
     const feedback = data.choices?.[0]?.message?.content;
-    if (!feedback) {
-      console.error("❌ No feedback content returned.");
-      return res.status(500).json({ error: "No feedback returned from model" });
+    if (!feedback || !feedback.trim()) {
+      console.error("⚠️ Empty feedback from model.");
+      return res.status(500).json({ error: "Model returned empty feedback" });
     }
 
     res.status(200).json({ feedback });
