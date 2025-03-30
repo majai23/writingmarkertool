@@ -90,6 +90,12 @@ Student's writing:
       })
     });
 
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("❌ OpenAI API error:", errorText);
+      return res.status(500).json({ error: "OpenAI API failed", details: errorText });
+    }
+
     const data = await response.json();
     console.log("🟢 FEEDBACK RESPONSE:", JSON.stringify(data, null, 2));
 
