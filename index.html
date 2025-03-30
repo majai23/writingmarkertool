@@ -6,7 +6,7 @@
   <style>
     body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; }
     label { display: block; margin-top: 20px; font-weight: bold; }
-    textarea, input, button, pre { width: 100%; padding: 10px; margin-top: 5px; }
+    textarea, input, button, pre, select { width: 100%; padding: 10px; margin-top: 5px; }
     button { background-color: #1e40af; color: white; border: none; cursor: pointer; }
     button:hover { background-color: #1d4ed8; }
     pre { background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 4px; min-height: 100px; white-space: pre-wrap; }
@@ -22,13 +22,16 @@
   <label for="studentWriting">Your Writing</label>
   <textarea id="studentWriting" rows="12" placeholder="Paste or write your composition here..."></textarea>
 
+  <label for="feedbackMode">Feedback Mode</label>
+  <select id="feedbackMode">
+    <option value="quick">Quick Feedback (C / L / O)</option>
+    <option value="detailed">Detailed Feedback (Bands + Suggestions)</option>
+  </select>
+
   <button onclick="markWriting()">Generate Feedback</button>
 
   <label for="feedback">Examiner Feedback</label>
-  <pre id="feedback">Feedback will appear here. Format:
-C: 
-L: 
-O:</pre>
+  <pre id="feedback">Feedback will appear here...</pre>
 
   <button onclick="brushUp()">Brush-up Writing to 5**</button>
 
@@ -39,6 +42,7 @@ O:</pre>
     async function markWriting() {
       const writing = document.getElementById("studentWriting").value;
       const feedback = document.getElementById("feedback");
+      const mode = document.getElementById("feedbackMode").value;
 
       if (!writing.trim()) {
         feedback.innerText = "⚠️ Please enter your writing first.";
@@ -50,7 +54,7 @@ O:</pre>
       const response = await fetch("/api/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ writing, level: "5**" })
+        body: JSON.stringify({ writing, level: "5**", mode })
       });
 
       const data = await response.json();
