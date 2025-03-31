@@ -1,9 +1,9 @@
 export default async function handler(req, res) {
-  const { writing, level, mode } = req.body;
-
   if (req.method === "GET") {
     return res.status(200).json({ message: "✅ Feedback API is alive!" });
   }
+
+  const { writing, level, mode } = req.body;
 
   if (!writing || !level) {
     return res.status(400).json({ error: "Missing writing or level" });
@@ -16,43 +16,28 @@ export default async function handler(req, res) {
   }[level] || 800;
 
   const detailedPrompt = \`
-You are an HKDSE English Paper 2 examiner.
+You are an experienced HKDSE English Paper 2 examiner.
 
-Evaluate the student's writing and assign a band (1–7) for each of the following:
-Content, Language, and Organisation.
+Evaluate the student's writing using the HKDSE rubrics. Give band scores from 1 to 7 for:
+- Content (C)
+- Language (L)
+- Organisation (O)
 
-Give strengths and weaknesses for each category, and suggestions to reach Level 5 and 5**.
+Then give short feedback under each.
 
-Format:
-Content: ?/7
-✅ ...
-✘ ...
-
-Language: ?/7
-✅ ...
-✘ ...
-
-Organisation: ?/7
-✅ ...
-✘ ...
-
-Suggestions to reach Level 5 and 5**:
-- ...
-- ...
+End with tips to help the student reach Level 5 and Level 5**.
 
 Student writing:
 \${writing}
 \`;
 
   const quickPrompt = \`
-You are an HKDSE English Paper 2 examiner.
+You are an experienced HKDSE English Paper 2 examiner.
 
-Evaluate the student’s writing in 3 categories:
-1. Content
-2. Language
-3. Organisation
-
-For each, write 2–4 sentences commenting on strengths and weaknesses.
+Give short feedback on the following student writing in three areas:
+- Content (C)
+- Language (L)
+- Organisation (O)
 
 Student writing:
 \${writing}
@@ -80,23 +65,16 @@ Student writing:
       })
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("❌ OpenAI API error:", errorText);
-      return res.status(500).json({ error: "OpenAI API failed", details: errorText });
-    }
-
     const data = await response.json();
     const feedback = data.choices?.[0]?.message?.content;
-
     if (!feedback || !feedback.trim()) {
-      return res.status(500).json({ error: "No feedback returned from model." });
+      return res.status(500).json({ error: "Model returned empty feedback" });
     }
 
     res.status(200).json({ feedback });
 
   } catch (err) {
-    console.error("🔥 Feedback error:", err);
-    res.status(500).json({ error: "Feedback generation failed." });
+    console.error("🔥 Feedback generation error:", err);
+    res.status(500).json({ error: "Failed to generate feedback" });
   }
 }
